@@ -15,9 +15,9 @@ navigation: horizontal
 ### 视频插帧技术
 
 计算机视觉技术在视频增强领域的应用之一，即对于已有的视频帧序列，通过在时间轴上
-进行插值，将视频向高帧率转换，改善视觉效果。许多硬件设备的显示器刷新率已经达到
-120Hz甚至144Hz，但很多视频仍然只有30帧/秒。除了对视觉效果的改善，视频插帧技术还
-被运用于视频压缩、视频编辑等领域。
+进行插值，将视频向高帧率转换，**改善视觉效果**。许多硬件设备的显示器刷新率已经
+达到 120Hz甚至144Hz，但很多视频仍然只有30帧/秒。除了对视觉效果的改善，视频插帧
+技术还被运用于**视频压缩**、**视频编辑**等领域。
 
 ![60 帧与 24 帧对比](images/report/60-24.png "60-24")
 
@@ -36,7 +36,7 @@ navigation: horizontal
 ### 模型推理速度慢
 
 - 模型体积较大
-- 推理环节的单个视频处理通常还包含抽帧、去重复帧等时间开销。
+- 推理环节的单个视频处理通常还包含**抽帧、去重复帧**等时间开销。
 
 ::: notes
 但是，在质量上某些中间帧会出现“伪影”问题，且由于神经网络模型大，推理生成中间帧
@@ -44,9 +44,11 @@ navigation: horizontal
 标准，才可以在手机等移动端、互联网云端落地应用。
 :::
 
+. . .
+
 ### 遮挡伪影
 
-![估计的中间帧中出现的运动前景和环境背景不能很好区分，产生模糊、遮挡。](images/report/shelter.png "shelter")
+![估计的中间帧中出现的**运动前景和环境背景不能很好区分**，产生模糊、遮挡。](images/report/shelter.png "shelter")
 
 ::: notes
 目前，在视频处理中，基于运动估计的视频插帧算法已经得到广泛应用，但在物体剧烈运
@@ -96,11 +98,11 @@ $(\mathrm{d}x, \mathrm{d}y)$关于$\mathrm{d}t$的导数，其广泛应用于目
 
 ## 光流定义
 
-### 图像(wrap)变换
+### 图像的 warp 变换
 
-通过光流引导输入图像(wrap)变换，从而生成估计的中间帧。
+通过光流引导输入图像的 warp 变换，从而生成估计的中间帧。
 
-![warp](images/report/warp.png "warp"){height=4cm}
+![前向 warp 变换和反向 warp 变换](images/report/warp.png "warp"){height=4cm}
 
 ::: notes
 2.2.2 图像的 warp 变换
@@ -116,11 +118,12 @@ warp 变换（forward warping）和反向 warp 变换（backward warping），�
 相较于前向 warp 变换而言，后向 warp 变换从目标图像中的像素点开始遍历，再
 通过光流变换矩阵求其在源图像中对应像素，如果源图像中的像素坐标不是整数，则
 对缺失值插值。因此后向 warp 变换不会产生前向 warp 变换的空洞和波纹等问题，在
+光流引导的视频插帧算法中，也**更常使用后向 warp 变换映射输入帧到中间帧**。
 :::
 
 ## 视频插帧网络
 
-![一般的视频插帧网络的组成，其中光流估计网络：估计中间光流；图像(wrap)变换：变换输入帧；帧融合过程：细化、改善中间帧](images/report/net.png "net"){height=5cm}
+![一般的视频插帧网络的组成，其中光流估计网络：估计中间光流；图像(warp)变换：变换输入帧；帧融合过程：细化、改善中间帧](images/report/net.png "net"){height=5cm}
 
 ::: notes
 如图，是一般的视频插帧网络的组成。
@@ -128,7 +131,7 @@ warp 变换（forward warping）和反向 warp 变换（backward warping），�
 
 ## 视频插帧网络
 
-![轻量级视频插帧网络由中间流估计网络IFnet, 语义信息提取网络 ContextNet, 帧融合网络 FusionNet 组成](images/report/arch.png "arch"){height=5cm}
+![轻量级视频插帧网络由中间流估计网络IFNet, 语义信息提取网络 ContextNet, 帧融合网络 FusionNet 组成](images/report/arch.png "arch"){height=5cm}
 
 ::: notes
 本代码使用的轻量级视频插帧网络主要由3个网络组成，流程为：
@@ -143,10 +146,10 @@ warp 变换（forward warping）和反向 warp 变换（backward warping），�
 
 ## 视频插帧网络
 
-![中间流估计网络ifnet](images/report/ifnet.png "ifnet"){height=5cm}
+![中间流估计网络IFNet](images/report/ifnet.png "ifnet"){height=5cm}
 
 ::: notes
-根据“由粗到精”的设计策略，IFnet 主要有三个 IFBlock 级联构成，每个 IFBlock 都有一个
+根据“由粗到精”的设计策略，IFNet 主要有三个 IFBlock 级联构成，每个 IFBlock 都有一个
 分辨率参数 Ki ，Ki 值依次增大。不同的 IFBlock 会识别不同的特征，Ki 越小表示
 当前识别帧的分辨率越低，更加利于跟踪大的运动或边界，而较大的 Ki 则表示帧分辨率
 越高，对识别细节丰富信息更有效。
@@ -154,7 +157,7 @@ warp 变换（forward warping）和反向 warp 变换（backward warping），�
 
 ## 视频插帧网络
 
-![语义信息提取网络 contextNet](images/report/context.png "context"){height=5cm}
+![语义信息提取网络 ContextNet](images/report/context.png "context"){height=5cm}
 
 ::: notes
 通过 IFNet 生成的光流对输入帧反向 warp 变换后得到的中间帧的质量并不好，塔结构
@@ -171,7 +174,7 @@ C03 , C02 , C01 , C00 和 C13 , C12 , C11 , C10 ，这么做的好处是在图�
 
 ## 视频插帧网络
 
-![帧融合网络fusionNet](images/report/fusion.png "fusion"){height=5cm}
+![帧融合网络FusionNet](images/report/fusion.png "fusion"){height=5cm}
 
 ::: notes
 为了融合不同层级分辨率和语义信息的 Ct←0 , Ct←1, 设计了“编码­解码”结构。在编码器
@@ -183,11 +186,11 @@ C03 , C02 , C01 , C00 和 C13 , C12 , C11 , C10 ，这么做的好处是在图�
 
 ## 数据集
 
-![vimeo90k 数据集由73,171个448×256的3帧序列组成，涵盖了各种场景和动作。 用于时间帧插值，视频去噪，视频解码和视频超分辨率。](images/report/vimeo90k.gif "vimeo90k"){height=4cm}
+![Vimeo-90k 数据集由73,171个448×256的3帧序列组成，涵盖了各种场景和动作。 用于时间帧插值，视频去噪，视频解码和视频超分辨率。](images/report/vimeo90k.gif "vimeo90k"){height=4cm}
 
 ::: notes
-目前，vimeo90k 数据集因其数据量最大且帧序列均从视频中剪辑而来更符合实际情况，常
-被用于插帧工作中。
+目前，Vimeo-90k 数据集因其数据量最大且帧序列均从视频中剪辑而来更符合实际情况，常
+被用于插帧工作中。除了 Vimeo-90k 外，UCF101 也是非常常见的数据集。
 
 // 可以展示数据集的视频
 :::
@@ -224,6 +227,47 @@ $$\begin{aligned}
 \end{aligned}$$
 
 其中，$\alpha, \beta, \gamma$通常取 1, $k_1, k_2, k_3$通常取0.01, 0.03, 0.03。
+
+## 实验
+
+![训练和验证的损失函数图像](images/report/train.png "train"){height=5cm}
+
+::: notes
+在训练过程中使用了余弦退火学习率、数据增强，共训练了 300 个 epoch。
+:::
+
+## 比较
+
+| 方法        | PSNR  | SSIM  |
+|-------------|-------|-------|
+| Super Slomo | 33.15 | 0.966 |
+| DAIN        | 34.71 | 0.976 |
+| 本网络      | 35.35 | 0.977 |
+
+::: notes
+通过模型的比较，可以看到本模型在 2 种不同的指标上都取得了最优的结果。
+:::
+
+## 比较
+
+::: notes
+然而该模型仍存在不足之处：
+:::
+
+1. 设计的模型并不支持在 $[0, 1]$ 内的**任意时刻插帧**，只能在 $2n$ 时刻插值。若
+   需要在 $t = 0.25$ 插值，则需要先在 $t = 0.5$ 插值，再在 $[0, 0.5]$ 之间插入
+   $t = 0.25$ 时刻的值，暂时不支持在 $t = 0.3, 0.7$ 等时刻插值。
+
+. . .
+
+2. 设计的模型只使用两帧作为输入，而往往视频却有很多输入帧，也有很多研究工作证明
+   使用**多帧输入**训练插帧模型能带来更好的效果。
+
+. . .
+
+3. 本次设计使用的评估指标为 PSNR 和 SSIM，但已有许多工作指出这些评价指标与人眼
+   视觉效果不太符合，而视频插帧这种对视觉效果更注重的任务，应尝试换用
+   **LPIPS（感知损失）**作为评估指标，同时使用该指标训练模型或许可以
 
 ## 插帧结果可视化
 
